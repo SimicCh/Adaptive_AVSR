@@ -20,7 +20,7 @@ All variants use `openai/whisper-base` together with an audio-visual fusion netw
 
 Each variant has `AVSR_<variant>__finetune.yaml` and `AVSR_<variant>__finetune__test.yaml` configurations. Baseline pretraining additionally uses [AVSR_baseline__pretrain.yaml](configs/baseline/AVSR_baseline__pretrain.yaml).
 
-## Repository layout and available assets
+## Repository layout
 
 ```text
 Adaptive_AVSR/
@@ -37,8 +37,13 @@ Adaptive_AVSR/
 └── testing__prepared_files.py
 ```
 
-The Git checkout includes the source code, configurations and noise-classifier checkpoint. Datasets, file lists, prepared test audio, and AVSR checkpoints under `results/` must be supplied separately. Data preprocessing follow the recipe from [AV-Fusion](https://github.com/SimicCh/AVSR-AV_Fusion_Module_for_Pre-Trained_ASR)
+## Data and model availability
 
+This repository includes the source code, configurations and the small noise-classifier checkpoint.
+
+- **AVSR checkpoints:** Large model checkpoints are not included due to their storage requirements. They can be shared upon request; please contact the authors.
+- **Datasets and prepared evaluation files:** We do not distribute these assets because we do not have the rights to redistribute them. Obtain the datasets from their respective providers under the applicable terms and prepare the files locally.
+- **File lists and transcripts:** Experiment-specific file-ID lists, label lists and noise-file lists are not included and must be prepared locally.
 
 ## Installation
 
@@ -86,65 +91,19 @@ Run all subsequent commands from the repository root; relative paths in YAML fil
 
 ## Data setup
 
-The configurations use LRS3 for finetuning and evaluation, a combined LRS3/VoxCeleb2 file list for baseline pretraining, and MUSAN plus speech samples for training-time noise augmentation. Obtain and prepare these datasets separately.
+The configurations use LRS3 for finetuning and evaluation, LRS3/VoxCeleb2 for baseline pretraining, and MUSAN plus speech samples for noise augmentation. For data preprocessing, follow the recipe from [AV-Fusion](https://github.com/SimicCh/AVSR-AV_Fusion_Module_for_Pre-Trained_ASR). Data preparation is external to this repository.
 
-### Audio, video, and transcripts
+The loader expects the following locally prepared inputs:
 
-Provide aligned audio/video clips with matching file IDs. For an ID such as `test/example_speaker/00001`, the dataset loader opens:
+- Aligned audio and mouth-region video clips at `<audio_root>/<file_id>.wav` and `<video_root>/<file_id>.mp4`. Use mono audio (resampled to 16 kHz); the configs assume 25 fps video, grayscale 88 × 88 crops and sequences of at most 30 seconds. The loader does not extract mouth regions from raw video.
+- File-ID lists with one relative ID per line, without a file extension, and label lists with one transcript per line in matching order. Finetuning, validation and testing require transcripts; the pretraining training split uses `label_list: null`.
+- Noise-file lists with one audio path per line, without headers or extra columns, despite their `.tsv` extension. Paths relative to `--data_dir_noise` must not start with `/`. The `single_sidespeaker` lists use extension-free audio IDs.
 
-```text
-<audio_root>/test/example_speaker/00001.wav
-<video_root>/test/example_speaker/00001.mp4
-```
+Update the dataset paths in each YAML configuration, including `<path_to_fids_lists>` and `<path_to_musan>`, to point to your local files. These placeholders are not expanded automatically.
 
-Use mono audio and prepared mouth-region videos. Audio is resampled to 16 kHz. The supplied configs assume 25 fps video, grayscale 88 × 88 crops, and sequences of at most 30 seconds. The loader crops/normalizes frames; it does not perform face detection or mouth-region extraction from raw video.
+## Pretrained models and checkpoint configuration
 
-File-ID lists contain one relative ID per line, without `.wav` or `.mp4`. Label lists contain one transcript per line in exactly the same order. Finetuning, validation, and testing require transcripts; the pretraining training split uses `label_list: null`.
-
-The configurations reference:
-
-- `LRS3_Vox2_fids_train.list` for baseline pretraining.
-- `LRS3_fids_train.list`, `LRS3_fids_valid.list`, and `LRS3_fids_test.list`.
-- `LRS3_labels_train.list`, `LRS3_labels_valid.list`, and `LRS3_labels_test.list`.
-- MUSAN noise lists under `tsv/{babble_musan,music,noise}/{train,valid,test}.tsv`.
-
-Despite the `.tsv` extension, each noise-list line is read as one audio filename, with no header or additional columns. Paths relative to `--data_dir_noise` must not start with `/`; a leading `/` makes the path absolute and bypasses the supplied noise root. `single_sidespeaker` lists use the same extension-free IDs as the main audio lists.
-
-Replace `<path_to_fids_lists>` and `<path_to_musan>` in each configuration you intend to use. The canonical baseline test config already uses `./00_data/file_lists/` and `./00_data/musan/`; adjust those paths if your layout differs. These placeholders are literal strings, not automatically expanded environment variables.
-
-### Prepared evaluation audio
-
-[testing__prepared_files.py](testing__prepared_files.py) expects pre-generated noisy WAV files. Its `--data_dir_audio` argument is the parent directory of the condition-specific folders:
-
-```text
-<prepared_audio_root>/
-├── wav_files_LRS3_noiseMixture_clean/
-│   └── test/example_speaker/00001.wav
-├── wav_files_LRS3_noiseMixture_SNR-5/
-│   └── test/example_speaker/00001.wav
-├── wav_files_musan_music_SNR0/
-│   └── test/example_speaker/00001.wav
-└── ...
-```
-
-The current script evaluates six categories: `LRS3_noiseMixture`, `musan_babble`, `LRS3_babble`, `musan_music`, `musan_noise`, and `LRS3_sidespeaker`. Its SNR list is `[-5, 0, 5, 10, 50]` dB. Supply `wav_files_<category>_SNR<snr>` for every combination, plus `wav_files_LRS3_noiseMixture_clean`: 31 condition folders in total, each containing every test file ID.
-
-These categories and SNRs are set in the Python script. During evaluation, `SNR_test` is set to 50 to disable additional on-the-fly noise mixing; it does not change the SNR of the prepared audio. The shared dataset constructor still reads the configured test noise lists, so those lists must exist and be nonempty. Test videos are shared across all audio conditions.
-
-## Checkpoints and pretrained backbones
-
-The supplied configs expect this local layout for AVSR weights:
-
-```text
-results/
-├── baseline/checkpoint/
-│   ├── pretrain_epoch3_Final.pth
-│   └── best_valid_epoch_finetune.pth
-└── <variant>/checkpoint/
-    └── best_valid_epoch_finetune.pth
-```
-
-Here, `<variant>` is any of the six adaptation names in the model table. These AVSR weights are excluded from Git and are not obtained by cloning the repository. Use separately obtained checkpoints or train the models below, then update the checkpoint fields to the actual output paths. No AVSR-checkpoint download link is currently supplied in this README.
+For AVSR weights obtained on request or produced by training, set the relevant checkpoint paths in the YAML configuration:
 
 | Config field | Purpose |
 | --- | --- |
@@ -153,9 +112,9 @@ Here, `<variant>` is any of the six adaptation names in the model table. These A
 | `model.adaptation_config.checkpoint_path` | Environmental embedding checkpoint for NoiseAdapt |
 | `model.adaptation_config.embedding_model_name` | SpeechBrain model for SpeakerAdapt |
 
-NoiseAdapt uses the included `pretrained_models/noise_classifier/epoch3_Final.pth`. The code also loads [Whisper Base](https://huggingface.co/openai/whisper-base), and SpeakerAdapt loads [SpeechBrain X-vector](https://huggingface.co/speechbrain/spkrec-xvect-voxceleb). The first run needs network access unless the required files have already been cached. Set `HF_HOME` to your chosen cache location if necessary; use `HF_HUB_OFFLINE=1` only after preparing the cache. SpeakerAdapt also creates a local `speechbrain/spkrec-xvect-voxceleb/` directory.
+NoiseAdapt uses the included `pretrained_models/noise_classifier/epoch3_Final.pth`. The third-party backbones [Whisper Base](https://huggingface.co/openai/whisper-base) and [SpeechBrain X-vector](https://huggingface.co/speechbrain/spkrec-xvect-voxceleb) (SpeakerAdapt) are downloaded separately by the code. The first run needs network access unless the required files have already been cached.
 
-Match the model architecture to the selected checkpoint. The canonical configs use 12 fusion layers. Loading uses `strict=False`, so incompatible extra keys can be ignored without stopping the run. Use [AVSR_baseline__finetune__test.yaml](configs/baseline/AVSR_baseline__finetune__test.yaml) for baseline evaluation; alternative copies may use different architecture settings.
+Ensure that the model configuration matches the selected checkpoint. Use [AVSR_baseline__finetune__test.yaml](configs/baseline/AVSR_baseline__finetune__test.yaml) for baseline evaluation.
 
 ## Training
 
@@ -183,7 +142,7 @@ python training.py \
     --config_fn configs/baseline/AVSR_baseline__pretrain.yaml
 ```
 
-This stage matches encoder embeddings to a clean-audio Whisper target; its decoder loss weight is zero. The default run saves `results/baseline/pretrain/epoch3_Final.pth`. To use that output for finetuning, set `model.model_chkp` in the desired finetuning YAML to this path, or place it at the default `results/baseline/checkpoint/pretrain_epoch3_Final.pth` location.
+This stage matches encoder embeddings to a clean-audio Whisper target; its decoder loss weight is zero. Set `model.model_chkp` in the desired finetuning YAML to the checkpoint produced by pretraining, or to a compatible checkpoint obtained on request.
 
 ### Baseline and adaptive finetuning
 
@@ -224,13 +183,13 @@ accelerate launch --multi_gpu --num_processes 4 --num_machines 1 \
 
 See the [Accelerate launching guide](https://huggingface.co/docs/accelerate/v1.2.1/en/basic_tutorials/launch) for other execution environments. The effective batch size is `batch_size_train × number_of_processes × gradient_accumulation_steps`; for example, `4 × 4 × 32 = 512`. Adjust the batch size to available GPU memory and keep `num_worker` positive with the current data loaders.
 
-Logs and checkpoints are written to `training.output_dir`. Epoch checkpoints are named `epoch<N>_Final.pth`. Training does not automatically create `best_valid_epoch_finetune.pth`; select a checkpoint using validation results and set the test config accordingly. Saved files contain model weights, not optimizer/scheduler state, so changing `start_epoch` and loading a checkpoint does not constitute an exact training-state resume.
+Logs and checkpoints are generated locally in `training.output_dir`. Epoch checkpoints are named `epoch<N>_Final.pth`; select a checkpoint using validation results and set `model.model_chkp_test` to its actual path. Saved files contain model weights, not optimizer/scheduler state, so loading a checkpoint does not constitute an exact training-state resume.
 
 ## Evaluation
 
-Use one GPU for the current evaluation entry point. It rebuilds condition-specific data loaders outside Accelerate's preparation step and does not aggregate metrics across processes.
+[testing__prepared_files.py](testing__prepared_files.py) evaluates locally prepared test audio; neither the prepared files nor a script to generate them is included. Follow the folder naming and test conditions defined in the script, or adapt them to your own evaluation data. `--data_dir_audio` must point to the parent directory of those condition-specific folders. The configured test noise lists must also exist and be nonempty.
 
-After supplying the prepared audio, videos, file lists, and matching AVSR checkpoint:
+Use one GPU for the current evaluation entry point; metrics are not aggregated across processes. The following command requires your own prepared audio, videos, file lists and a matching AVSR checkpoint:
 
 ```bash
 python testing__prepared_files.py \
@@ -242,7 +201,4 @@ python testing__prepared_files.py \
 
 To evaluate an adaptation variant, replace the config with `configs/<variant>/AVSR_<variant>__finetune__test.yaml`. Ensure `model.model_chkp_test` points to that variant's checkpoint.
 
-The baseline writes `results/baseline/test/03_test.log` and `results/baseline/test/03_test.pkl`. Other variants use their own output directories. The pickle groups results by condition (`clean`, `musan_music_0dB`, etc.), then by file ID, with `prediction`, `label`, and `wer` fields for each utterance.
-
-
-
+Evaluation generates logs and a prediction pickle in the configured output directory.
