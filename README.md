@@ -37,9 +37,8 @@ Adaptive_AVSR/
 └── testing__prepared_files.py
 ```
 
-The Git checkout includes the source code, configurations and noise-classifier checkpoint. Datasets, file lists, prepared test audio, and AVSR checkpoints under `results/` must be supplied separately. Data preprocessing and generation of the prepared noisy test sets are not included in this checkout.
+The Git checkout includes the source code, configurations and noise-classifier checkpoint. Datasets, file lists, prepared test audio, and AVSR checkpoints under `results/` must be supplied separately. Data preprocessing follow the recipe from [AV-Fusion](https://github.com/SimicCh/AVSR-AV_Fusion_Module_for_Pre-Trained_ASR)
 
-The following local files are excluded by [.gitignore](.gitignore): `00_data/`, `container_env/`, `test_baseline.*` (including the local Slurm script), and all `*.pth` files under `results/`. The commands below therefore use the Python entry points directly.
 
 ## Installation
 
