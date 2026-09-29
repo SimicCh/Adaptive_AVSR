@@ -2,7 +2,7 @@
 
 Code for **Adaptive AVSR: Integrating Speaker and Environmental Embeddings for Robust Audio-Visual Speech Recognition**, INTERSPEECH 2026.
 
-This repository implements a Whisper-based audio-visual speech recognition (AVSR) system and adaptation variants that incorporate speaker or environmental embeddings. The variants explore cross-attention, gated weighting, and prefix-based integration to condition recognition on the speaker or acoustic environment.
+This repository implements a Whisper-based audio-visual speech recognition (AVSR) system and adaptation variants that incorporate speaker or environmental embeddings. The variants explore cross-attention, gated weighting and prefix-based integration to condition recognition on the speaker or acoustic environment.
 
 ## Models
 
@@ -11,12 +11,12 @@ All variants use `openai/whisper-base` together with an audio-visual fusion netw
 | Variant | Additional embedding | Integration | Config directory |
 | --- | --- | --- | --- |
 | Baseline | None | Audio-visual fusion | [baseline](configs/baseline/) |
-| SpeakerAdapt cross-attention | Speaker | Cross-attention | [SpeakerAdapt_cross_attention](configs/SpeakerAdapt_cross_attention/) |
-| SpeakerAdapt gated weighting | Speaker | Feature gating | [SpeakerAdapt_gated_weighting](configs/SpeakerAdapt_gated_weighting/) |
-| SpeakerAdapt prefix | Speaker | Prefix | [SpeakerAdapt_prefix](configs/SpeakerAdapt_prefix/) |
-| NoiseAdapt cross-attention | Environment | Cross-attention | [NoiseAdapt_cross_attention](configs/NoiseAdapt_cross_attention/) |
-| NoiseAdapt gated weighting | Environment | Feature gating | [NoiseAdapt_gated_weighting](configs/NoiseAdapt_gated_weighting/) |
-| NoiseAdapt prefix | Environment | Key/value prefix | [NoiseAdapt_prefix](configs/NoiseAdapt_prefix/) |
+| SpeakerAdapt cross-attention | Speaker | Cross-attention (post-encoder) | [SpeakerAdapt_cross_attention](configs/SpeakerAdapt_cross_attention/) |
+| SpeakerAdapt gated weighting | Speaker | Feature gating (post-encoder) | [SpeakerAdapt_gated_weighting](configs/SpeakerAdapt_gated_weighting/) |
+| SpeakerAdapt prefix | Speaker | Prefix (post-encoder) | [SpeakerAdapt_prefix](configs/SpeakerAdapt_prefix/) |
+| NoiseAdapt cross-attention | Environment | Cross-attention (Fusion Module) | [NoiseAdapt_cross_attention](configs/NoiseAdapt_cross_attention/) |
+| NoiseAdapt gated weighting | Environment | Feature gating (Fusion Module) | [NoiseAdapt_gated_weighting](configs/NoiseAdapt_gated_weighting/) |
+| NoiseAdapt prefix | Environment | Prefix (Fusion Module) | [NoiseAdapt_prefix](configs/NoiseAdapt_prefix/) |
 
 Each variant has `AVSR_<variant>__finetune.yaml` and `AVSR_<variant>__finetune__test.yaml` configurations. Baseline pretraining additionally uses [AVSR_baseline__pretrain.yaml](configs/baseline/AVSR_baseline__pretrain.yaml).
 
@@ -253,10 +253,4 @@ To evaluate an adaptation variant, replace the config with `configs/<variant>/AV
 The baseline writes `results/baseline/test/03_test.log` and `results/baseline/test/03_test.pkl`. Other variants use their own output directories. The pickle groups results by condition (`clean`, `musan_music_0dB`, etc.), then by file ID, with `prediction`, `label`, and `wer` fields for each utterance.
 
 
-## Citation
 
-If you use this code in your research, please cite:
-
-> Adaptive AVSR: Integrating Speaker and Environmental Embeddings for Robust Audio-Visual Speech Recognition. INTERSPEECH 2026.
-
-<!-- Add the author list, paper/DOI link, and verified BibTeX entry when supplying the publication metadata. -->
