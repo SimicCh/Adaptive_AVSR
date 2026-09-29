@@ -1,0 +1,148 @@
+seed: 1987
+whisper_model_name: 'openai/whisper-base'
+
+training:
+  output_dir: ./results/NoiseAdapt_gated_weighting/test
+  log_fn: '03_test.log' #'02_finetune_startep0.log'
+  log_fn_test: '03_test.log'
+  start_epoch: 0 #0
+  num_epochs: 5 #1
+  skip_iterations:
+  num_worker: 16
+  batch_size_train: 4
+  gradient_accumulation_steps: 32 # (batch_size_train) 4 * (numGPU) 4 * 32 = 512
+  batch_size_eval: 4
+  batch_size_test: 8
+  num_eval_samples: 2048 #1024
+  learning_rate: 0.0001 #0.0001
+  weight_decay: 1e-4
+  lr_scheduler_type: 'linear' #'constant_with_warmup' #'linear'
+  lr_scheduler_num_warmup_steps: 1000
+  log_frequ: 125
+  eval_frequ: 8000
+  melspec_loss_weight: 0.00
+  enc_embed_loss_weight: 1.00
+  dec_embed_loss_weight: 1.00
+
+dataset:
+  type: 'AVSR_standard'
+  video_fps: 25
+  max_duration: 30
+  whisper_modelname: 'openai/whisper-base'
+  SNR_train: [-15, 30]
+  SNR_valid: [-10, 10]
+  SNR_test: 50
+  SNR_valid_variants: [-10, 0, 10, 20, 50]
+  train_fids:
+    fid_list: "<path_to_fids_lists>/LRS3_fids_train.list" # Finetune
+    label_list: "<path_to_fids_lists>/LRS3_labels_train.list" # Finetune
+    noise_fid_lists:
+      musan_babble: "<path_to_musan>/tsv/babble_musan/train.tsv"
+      musan_music: "<path_to_musan>/tsv/music/train.tsv"
+      musan_noise: "<path_to_musan>/tsv/noise/train.tsv"
+      single_sidespeaker: "<path_to_fids_lists>/LRS3_fids_train.list" # Finetune
+  valid_fids:
+    fid_list: "<path_to_fids_lists>/LRS3_fids_valid.list"
+    label_list: "<path_to_fids_lists>/LRS3_labels_valid.list"
+    noise_fid_lists:
+      musan_babble: "<path_to_musan>/tsv/babble_musan/valid.tsv"
+      musan_music: "<path_to_musan>/tsv/music/valid.tsv"
+      musan_noise: "<path_to_musan>/tsv/noise/valid.tsv"
+      single_sidespeaker: "<path_to_fids_lists>/LRS3_fids_valid.list"
+  test_fids:
+    fid_list: "<path_to_fids_lists>/LRS3_fids_test.list"
+    label_list: "<path_to_fids_lists>/LRS3_labels_test.list"
+    noise_fid_lists:
+      musan_babble: "<path_to_musan>/tsv/babble_musan/test.tsv"
+      musan_music: "<path_to_musan>/tsv/music/test.tsv"
+      musan_noise: "<path_to_musan>/tsv/noise/test.tsv"
+      single_sidespeaker: "<path_to_fids_lists>/LRS3_fids_test.list"
+  # Specaugment
+  specaug_strategy: 'modSpecAug' # 'standardSpecAug', 'modSpecAug'
+  specaug_splitlen: 100
+  specaug_maxSequLen: 25
+  specaug_maxlenratio: 0.25
+  specaug_maxchannels: 27
+  # Video transformation
+  # Resize mode for input frames - Resize or random/center cropping
+  video_transform_resize_mode: 'crop'     # 'resize', 'crop'
+  video_transform_input_shape: [88,88]
+  # Random horizontal flip during training
+  video_transform_do_horizontal_flip: True
+  video_transform_horizontal_flip_prob: 0.5
+  # Gaussian blur during training
+  video_transform_do_GaussianBlur: False
+  video_transform_GaussianBlur_kernelsize: [5,9]
+  video_transform_GaussianBlur_sigma: [0.1, 2]
+  # FrameMasking for Video sequence
+  video_transform_do_framemask: False
+  video_transform_framemask_mode: 'mask_prob' # 'mask_len', 'mask_prob'
+  video_transform_framemask_range: [0,0]
+  video_transform_framemask_prob: 0.0
+  # Frame area cropping
+  video_transform_do_framecrop: True
+  video_transform_framecrop_prob: 0.3
+  video_transform_framecrop_maxAreaShare: 0.3
+  # Normalization
+  video_transform_normalize_mode: 'gray'                # 'div255', 'min_max', 'mean_std', 'gray' 1 channel [0,1] 
+  video_transform_normalize_mean: [0.406,0.456,0.485]   # BGR
+  video_transform_normalize_std: [0.225,0.224,0.229]    # BGR
+
+model:
+  model_name: 'CustomWhisper_forAVSR_SAttn_wConcat_AV_Fusion___wNoiseAdaptFeatureGating'
+  whisper_name: 'openai/whisper-base'
+  doMasking: True
+  enc_embed_loss_type: 'mse'  # 'mse', 'l1', 'decayed_combined_mag_cos_loss', 'Loss_CosinusMagnitude'
+  loss_config:
+  model_chkp: 
+  model_chkp_test: ./results/NoiseAdapt_gated_weighting/checkpoint/best_valid_epoch_finetune.pth
+  training_mode: 'fft'   # 'peft' / 'fft'
+  freeze_embedding: False
+  freeze_encoder: False #True
+  freeze_decoder: False #True
+  lora_config: None
+  adaptation_config:
+    max_len_s: 20
+    model_name: 'classifier_Attn__wEmbMean'
+    checkpoint_path: ./pretrained_models/noise_classifier/epoch3_Final.pth
+    input_dim: 80
+    processing_dim: 256
+    out_dim: 256
+    num_layers: 4
+    num_heads: 8
+    hidden_dim: 512
+    attn_dropout: 0.1
+    ff_dropout: 0.1
+    classifier_num_classes: 4
+    mapping_act_fun: 'tanh'  # 'relu', 'tanh', 'sigmoid', 'gelu'
+    gating_inp_dim: 256
+    gating_hidden_dim: 80
+    gating_out_dim: 160
+    gating_dropout: 0.1
+  embedding_config:
+    # Config for audio and video feature extraction and preprocessing
+    config_preprocessor_audio_video:
+      video_feature_extractor: 'LIPNET'  # 'mobilenetV2' / 'LIPNET'
+      Lipnet_video_layer: [[2,1],[2,1],[2,1],[3,1]]
+      Lipnet_emb_size: 80
+      Lipnet_num_input_channels: 1
+      audio_feature_extractor: 'CNN'
+      Specfront_procChannels: 128
+      Specfront_layerNum: 7
+      Specfront_inp_dim: 80
+      Specfront_out_dim: 80
+    # Config for AV fusion transformer
+    processing_dim: 80
+    ffn_dim: 160
+    out_dim: 80
+    heads: 12
+    heads_noise_emb: 4
+    num_layer: 12
+    dropout: 0.1
+    chunk_processing: True
+    chunk_sizes_audio_qkv: [160, 160, 160]
+    step_sizes_audio_qkv: [80, 80, 80]
+    chunk_sizes_video_qkv: [160, 160, 160]
+    step_sizes_video_qkv: [80, 80, 80]
+    fusion_do_masking: True
+  

@@ -1,0 +1,15 @@
+# Local datasets
+/00_data/
+
+# Container image and build files
+/container_env/
+
+# Baseline test files
+/test_baseline.*
+
+# Model checkpoints below results
+/results/**/*.pth
+
+# Python-generated files
+__pycache__/
+*.py[cod]
