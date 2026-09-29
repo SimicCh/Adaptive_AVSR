@@ -6,7 +6,7 @@ training:
   log_fn: '01_pretrain_startep0.log' #'01_pretrain_startep0.log'
   start_epoch: 0 #0
   num_epochs: 3 #1
-  skip_iterations: 32000
+  skip_iterations: 
   num_worker: 16
   batch_size_train: 8
   gradient_accumulation_steps: 1
