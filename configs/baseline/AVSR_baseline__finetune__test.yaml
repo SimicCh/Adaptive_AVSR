@@ -35,29 +35,29 @@ dataset:
   SNR_test: 50
   SNR_valid_variants: [-10, 0, 10, 20, 50]
   train_fids:
-    fid_list: "./00_data/file_lists/LRS3_fids_train.list"
-    label_list: "./00_data/file_lists/LRS3_labels_train.list" 
+    fid_list: "<path_to_fids_lists>/LRS3_fids_train.list"
+    label_list: "<path_to_fids_lists>/LRS3_labels_train.list" 
     noise_fid_lists:
-      musan_babble: "./00_data/musan/tsv/babble_musan/train.tsv"
-      musan_music: "./00_data/musan/tsv/music/train.tsv"
-      musan_noise: "./00_data/musan/tsv/noise/train.tsv"
-      single_sidespeaker: "./00_data/file_lists/LRS3_fids_train.list" 
+      musan_babble: "<path_to_musan>/tsv/babble_musan/train.tsv"
+      musan_music: "<path_to_musan>/tsv/music/train.tsv"
+      musan_noise: "<path_to_musan>/tsv/noise/train.tsv"
+      single_sidespeaker: "<path_to_fids_lists>/LRS3_fids_train.list" 
   valid_fids:
-    fid_list: "./00_data/file_lists/LRS3_fids_valid.list"
-    label_list: "./00_data/file_lists/LRS3_labels_valid.list"
+    fid_list: "<path_to_fids_lists>/LRS3_fids_valid.list"
+    label_list: "<path_to_fids_lists>/LRS3_labels_valid.list"
     noise_fid_lists:
-      musan_babble: "./00_data/musan/tsv/babble_musan/valid.tsv"
-      musan_music: "./00_data/musan/tsv/music/valid.tsv"
-      musan_noise: "./00_data/musan/tsv/noise/valid.tsv"
-      single_sidespeaker: "./00_data/file_lists/LRS3_fids_valid.list"
+      musan_babble: "<path_to_musan>/tsv/babble_musan/valid.tsv"
+      musan_music: "<path_to_musan>/tsv/music/valid.tsv"
+      musan_noise: "<path_to_musan>/tsv/noise/valid.tsv"
+      single_sidespeaker: "<path_to_fids_lists>/LRS3_fids_valid.list"
   test_fids:
-    fid_list: "./00_data/file_lists/LRS3_fids_test.list"
-    label_list: "./00_data/file_lists/LRS3_labels_test.list"
+    fid_list: "<path_to_fids_lists>/LRS3_fids_test.list"
+    label_list: "<path_to_fids_lists>/LRS3_labels_test.list"
     noise_fid_lists:
-      musan_babble: "./00_data/musan/tsv/babble_musan/test.tsv"
-      musan_music: "./00_data/musan/tsv/music/test.tsv"
-      musan_noise: "./00_data/musan/tsv/noise/test.tsv"
-      single_sidespeaker: "./00_data/file_lists/LRS3_fids_test.list"
+      musan_babble: "<path_to_musan>/tsv/babble_musan/test.tsv"
+      musan_music: "<path_to_musan>/tsv/music/test.tsv"
+      musan_noise: "<path_to_musan>/tsv/noise/test.tsv"
+      single_sidespeaker: "<path_to_fids_lists>/LRS3_fids_test.list"
   # Specaugment
   specaug_strategy: 'modSpecAug' # 'standardSpecAug', 'modSpecAug'
   specaug_splitlen: 100
