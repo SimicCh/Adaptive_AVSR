@@ -24,20 +24,20 @@ Each variant has `AVSR_<variant>__finetune.yaml` and `AVSR_<variant>__finetune__
 
 ```text
 Adaptive_AVSR/
-├── configs/                 # Pretraining, finetuning, and evaluation configurations
+├── configs/                 # Pretraining, finetuning and evaluation configurations
 ├── dataset/                 # Audio/video loading and augmentation
-├── models/                  # Baseline, adaptation models, and fusion blocks
+├── models/                  # Baseline, adaptation models and fusion blocks
 ├── noise_classifier/        # Environmental embedding model implementation
 ├── pretrained_models/
 │   └── noise_classifier/
 │       └── epoch3_Final.pth  # Included environmental embedding checkpoint
-├── utils/                   # Model loading, data loaders, and scheduler setup
+├── utils/                   # Model loading, data loaders and scheduler setup
 ├── requirements.txt
 ├── training.py
 └── testing__prepared_files.py
 ```
 
-The Git checkout includes the source code, configurations, and noise-classifier checkpoint. Datasets, file lists, prepared test audio, and AVSR checkpoints under `results/` must be supplied separately. Data preprocessing and generation of the prepared noisy test sets are not included in this checkout.
+The Git checkout includes the source code, configurations and noise-classifier checkpoint. Datasets, file lists, prepared test audio, and AVSR checkpoints under `results/` must be supplied separately. Data preprocessing and generation of the prepared noisy test sets are not included in this checkout.
 
 The following local files are excluded by [.gitignore](.gitignore): `00_data/`, `container_env/`, `test_baseline.*` (including the local Slurm script), and all `*.pth` files under `results/`. The commands below therefore use the Python entry points directly.
 
