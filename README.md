@@ -62,13 +62,6 @@ sudo apt-get install -y build-essential libsndfile1 \
 python -m pip install -r requirements.txt
 ```
 
-The current root `requirements.txt` contains both legacy `PySoundFile` and `soundfile`. They install the same Python module. After installation, remove the legacy package and restore the pinned SoundFile package:
-
-```bash
-python -m pip uninstall -y PySoundFile
-python -m pip install --force-reinstall --no-deps soundfile==0.12.1
-```
-
 SoundFile requires libsndfile; see its [installation documentation](https://python-soundfile.readthedocs.io/en/0.13.1/#installation). Keep Python 3.10 for these instructions: the pinned NumPy 1.23.5 does not support Python 3.12 ([NumPy release notes](https://numpy.org/doc/stable/release/1.23.5-notes.html)).
 
 Check the environment before staging the datasets or submitting a long job:
